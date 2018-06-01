@@ -26,7 +26,7 @@ impl Socket for TcpSocket{
         }
     }
 
-    fn do_work(&mut self, method: Method, uri: Uri) -> Option<Value>{
+    fn request(&mut self, method: Method, uri: Uri) -> Option<Value>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
         let client = Client::configure().connector(UnixConnector::new(handle)).build(&core.handle());

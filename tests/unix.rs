@@ -8,7 +8,7 @@ use docktape::unix::{UnixSocket};
 use docktape::Docker;
 
 #[test]
-fn unix_socket() {
+fn unix_socket(){
 
     let socket = UnixSocket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());
@@ -18,7 +18,8 @@ fn unix_socket() {
         Some(containers) =>{
             println!("\nContainers:");
             for container in containers{
-                println!("ID: {} - NAME: {}", container.id, container.name);
+                let cont = docker.inspect_container(container.name()).unwrap();
+                println!("Name: {}, Running: {}", cont.name, cont.running);
             }
         },
         None =>{
@@ -31,7 +32,14 @@ fn unix_socket() {
         Some(images) =>{
             println!("\nImages:");
             for image in images{
-                println!("ID: {} - TAGS: {:?}", image.id, image.repo_tags);
+                if let Some(name) = image.repo_tags_name(){
+                    if let Some(img) = docker.inspect_image(&name){
+                        println!("ID: {}, Name: {}", img.id(), name);
+                    }
+                    else{
+                        println!("Cannot get image {}!", name);
+                    }
+                }
             }
         },
         None =>{

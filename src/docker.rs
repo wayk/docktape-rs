@@ -19,7 +19,7 @@ impl<T> Docker<T> where T: Socket{
     pub fn get_containers(&mut self) -> Option<Vec<Container>>{
         let uri = Uri::new(self.socket.address(), "/containers/json");
 
-        match self.socket.do_work(Get, uri) {
+        match self.socket.request(Get, uri) {
             Some(conts) => {
                 let mut containers = Vec::new();
                 let arr_containers: &Vec<Value> = conts.as_array().unwrap();
@@ -27,6 +27,8 @@ impl<T> Docker<T> where T: Socket{
                     containers.push(Container{
                         id: c["Id"].to_string(),
                         name: c["Names"][0].to_string(),
+                        image: c["Image"].to_string(),
+                        running: true
                     });
                 }
 
@@ -41,7 +43,7 @@ impl<T> Docker<T> where T: Socket{
     pub fn get_images(&mut self) -> Option<Vec<Image>>{
         let uri = Uri::new(self.socket.address(), "/images/json");
 
-        match self.socket.do_work(Get, uri) {
+        match self.socket.request(Get, uri) {
             Some(imgs) => {
                 let mut images = Vec::new();
                 let arr_images: &Vec<Value> = imgs.as_array().unwrap();
@@ -52,8 +54,7 @@ impl<T> Docker<T> where T: Socket{
                     }
                     images.push(Image{
                         id: c["Id"].to_string(),
-                        repo_tags: Some(tags),
-                    });
+                        repo_tags: Some(tags) });
                 }
 
                 Some(images)
@@ -64,11 +65,54 @@ impl<T> Docker<T> where T: Socket{
         }
     }
 
-    pub fn inspect_container(&self, _container: &str){
+    pub fn inspect_container(&mut self, container: String) -> Option<Container>{
+        let mut container_name: String = format!("/containers{}/json", container);
+        let uri = Uri::new(self.socket.address(), container_name.as_str());
 
+        match self.socket.request(Get, uri) {
+            Some(container) => {
+                Some(
+                    Container{
+                        id: container["Id"].to_string(),
+                        name: container["Name"].to_string(),
+                        image: container["Config"]["Image"].to_string(),
+                        running: true,
+                    }
+                )
+            },
+            None =>{
+                None
+            }
+        }
     }
 
-    pub fn inspect_image(&self, _image: &str){
+    pub fn inspect_image(&mut self, image: &str) -> Option<Image>{
+        let mut image_name: String = format!("/images/{}/json", image);
+        let uri = Uri::new(self.socket.address(), image_name.as_str());
 
+        match self.socket.request(Get, uri) {
+            Some(image) => {
+                match image["RepoTags"].as_array(){
+                    Some(tags) =>{
+                        let mut ts = Vec::new();
+                        for tag in tags{
+                            ts.push(tag.to_string());
+                        }
+                        Some(
+                            Image{
+                                id: image["Id"].to_string(),
+                                repo_tags: Some(ts)
+                            }
+                        )
+                    },
+                    None =>{
+                        None
+                    }
+                }
+            },
+            None =>{
+                None
+            }
+        }
     }
 }

@@ -23,5 +23,5 @@ pub use hyper::Method;
 pub trait Socket{
     fn address(&self) -> String;
     fn new(address: &str) -> Self;
-    fn do_work(&mut self, method: Method, uri: Uri) -> Option<Value>;
+    fn request(&mut self, method: Method, uri: Uri) -> Option<Value>;
 }
