@@ -1,5 +1,6 @@
 extern crate docktape;
 extern crate tokio_core;
+#[macro_use]
 extern crate serde_json;
 extern crate hyper;
 
@@ -46,4 +47,59 @@ fn unix_socket(){
 
         }
     }
+
+    match docker.create_network("den-net") {
+        Some(network) => {
+            println!("Network ID: {:?}, NAME: {}", network.id(), network.name());
+        },
+        None => {
+
+        }
+    }
+
+    match docker.inspect_network("den-net") {
+        Some(network) => {
+            println!("Network ID: {:?}, NAME: {}", network.id(), network.name());
+        },
+        None => {
+
+        }
+    }
+
+    //docker.delete_network("newnetwork");
+
+    let body = json!({
+        "NetworkMode": "den-net",
+        "Image": "devolutions/denrouter-rs:0.1.6-dev",
+        "PortBindings": {
+            "4491/tcp": [{ "HostPort": "4491" }]
+        }
+    });
+
+    match docker.create_container(&body.to_string(), "router") {
+        Some(container) => {
+            println!("Result: {:?}", container.name());
+        },
+        None => {
+
+        }
+    }
+
+    let body = json!({
+        "NetworkMode": "den-net",
+        "Image": "devolutions/waykden-rs:0.1.8-dev",
+        "Cmd": ["-ltrace", "-u", "ws://router:4491"]
+    });
+
+    match docker.create_container(&body.to_string(), "den") {
+        Some(container) => {
+            println!("Result: {:?}", container.name());
+        },
+        None => {
+
+        }
+    }
+
+    docker.start_container("router");
+    docker.start_container("den");
 }
