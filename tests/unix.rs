@@ -5,101 +5,213 @@ extern crate serde_json;
 extern crate hyper;
 
 use docktape::*;
-use docktape::unix::{UnixSocket};
 use docktape::Docker;
 
 #[test]
-fn unix_socket(){
-
+fn images_test() {
     let socket = UnixSocket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());
 
-    let containers = docker.get_containers();
-    match containers{
-        Some(containers) =>{
-            println!("\nContainers:");
-            for container in containers{
-                let cont = docker.inspect_container(container.name()).unwrap();
-                println!("Name: {}, Running: {}", cont.name, cont.running);
-            }
-        },
+    match docker.create_image_from_image("fedora:latest", ""){
+        Some(msg) =>{
+            println!("Error message: {:?}", msg["message"]);
+        }
         None =>{
-
+            println!("Image created.");
         }
     }
 
-    let images = docker.get_images();
-    match images{
+    match docker.get_images(){
         Some(images) =>{
-            println!("\nImages:");
-            for image in images{
-                if let Some(name) = image.repo_tags_name(){
-                    if let Some(img) = docker.inspect_image(&name){
-                        println!("ID: {}, Name: {}", img.id(), name);
-                    }
-                    else{
-                        println!("Cannot get image {}!", name);
-                    }
-                }
-            }
+            println!("There are {} image(s).", images.len());
         },
         None =>{
-
+            println!("There are no images.");
         }
     }
 
-    match docker.create_network("den-net") {
-        Some(network) => {
-            println!("Network ID: {:?}, NAME: {}", network.id(), network.name());
-        },
+    match docker.inspect_image("fedora:latest"){
+        Some(img) => {
+            println!("Image id: {}.", img.id());
+        }
         None => {
-
+            println!("Cannot get image.");
         }
     }
 
-    match docker.inspect_network("den-net") {
-        Some(network) => {
-            println!("Network ID: {:?}, NAME: {}", network.id(), network.name());
-        },
-        None => {
-
+    match docker.delete_image("fedora:latest"){
+        Some(_) =>{
+            println!("Image deleted.");
+        }
+        None =>{
+            println!("Error while deleting image.");
         }
     }
+}
 
-    //docker.delete_network("newnetwork");
+#[test]
+fn containers_test() {
+    let socket = UnixSocket::new("/var/run/docker.sock");
+    let mut docker = Docker::new(socket.clone());
 
     let body = json!({
-        "NetworkMode": "den-net",
-        "Image": "devolutions/denrouter-rs:0.1.6-dev",
-        "PortBindings": {
-            "4491/tcp": [{ "HostPort": "4491" }]
-        }
+        "Image": "fedora:latest",
+        "Cmd": ["echo"]
     });
 
-    match docker.create_container(&body.to_string(), "router") {
-        Some(container) => {
-            println!("Result: {:?}", container.name());
+    match docker.create_container(&body.to_string(), "my_container"){
+        Some(_) =>{
+            println!("Container created.");
         },
-        None => {
-
+        None =>{
+            println!("Error while creating container.");
         }
     }
+
+    match docker.start_container("my_container"){
+        Some(msg) =>{
+            println!("Error message: {:?}.", msg["message"]);
+        }
+        None =>{
+            println!("Container started.");
+        }
+    }
+
+    match docker.get_containers(){
+        Some(containers) =>{
+            println!("There are {} container(s).", containers.len());
+        },
+        None =>{
+            println!("There are no containers.");
+        }
+    }
+
+    match docker.inspect_container("my_container"){
+        Some(container) =>{
+            println!("Container id: {}.", container.id());
+        }
+        None =>{
+            println!("Container can't be found.");
+        }
+    }
+
+    match docker.restart_container("my_container"){
+        Some(msg) =>{
+            println!("Error message: {:?}.", msg["message"]);
+        }
+        None =>{
+            println!("Container restarted.");
+        }
+    }
+
+    match docker.stop_container("my_container"){
+        Some(msg) =>{
+            println!("Error message: {:?}.", msg["message"]);
+        }
+        None =>{
+            println!("Container stopped.");
+        }
+    }
+
+    match docker.delete_container("my_container"){
+        Some(msg) =>{
+            println!("Error message: {:?}", msg["message"]);
+        }
+        None =>{
+            println!("Container deleted.");
+        }
+    }
+}
+
+#[test]
+fn networks_test(){
+    let socket = UnixSocket::new("/var/run/docker.sock");
+    let mut docker = Docker::new(socket.clone());
 
     let body = json!({
-        "NetworkMode": "den-net",
-        "Image": "devolutions/waykden-rs:0.1.8-dev",
-        "Cmd": ["-ltrace", "-u", "ws://router:4491"]
+        "Name": "my_network",
+        "CheckDuplicate": true
     });
 
-    match docker.create_container(&body.to_string(), "den") {
-        Some(container) => {
-            println!("Result: {:?}", container.name());
-        },
-        None => {
-
+    match docker.create_network(&body.to_string()) {
+        Some(_) =>{
+            println!("Network created.");
+        }
+        None =>{
+            println!("Error while creating network.");
         }
     }
 
-    docker.start_container("router");
-    docker.start_container("den");
+    match docker.get_networks(){
+        Some(networks) =>{
+            println!("There are {} network(s).", networks.len());
+        },
+        None =>{
+            println!("There are no networks.");
+        }
+    }
+
+    match docker.inspect_network("my_network"){
+        Some(network) => {
+            println!("Network id: {}.", network.id());
+        }
+        None => {
+            println!("Cannot get network.");
+        }
+    }
+
+    match docker.delete_network("my_network"){
+        Some(msg) =>{
+            println!("Error message: {:?}.", msg["message"]);
+        }
+        None =>{
+            println!("Network deleted.");
+        }
+    }
+}
+
+#[test]
+fn volumes_test() {
+    let socket = UnixSocket::new("/var/run/docker.sock");
+    let mut docker = Docker::new(socket.clone());
+
+    let body = json!({
+        "Name": "my_volume"
+    });
+
+    match docker.create_volume(&body.to_string()){
+        Some(_) =>{
+            println!("Volume created.");
+        }
+        None =>{
+            println!("Error while creating volume.");
+        }
+    }
+
+    match docker.get_volumes(){
+        Some(volumes) =>{
+            println!("There are {} volume(s).", volumes.len());
+        },
+        None =>{
+            println!("There are no volumes.");
+        }
+    }
+
+    match docker.inspect_volume("my_volume"){
+        Some(volume) =>{
+            println!("Volume mountpoint: {}.", volume.mountpoint());
+        }
+        None =>{
+            println!("Volume can't be found.");
+        }
+    }
+
+    match docker.delete_volume("my_volume"){
+        Some(msg) =>{
+            println!("Error message: {:?}", msg["message"]);
+        }
+        None =>{
+            println!("Volume deleted.");
+        }
+    }
 }
