@@ -3,9 +3,9 @@ name = "docktape"
 version = "0.1.0"
 authors = ["spicheaubin <spicheaubin@devolutions.net>"]
 description = "Wrapping the Docker API"
-documentation = ""
-homepage = ""
-repository = ""
+documentation = "https://docs.rs/docktape"
+homepage = "https://github.com/wayk/docktape-rs"
+repository = "https://github.com/wayk/docktape-rs"
 keywords = ["Docker", "wrapper", "hyper", "http", "unix"]
 license = "MIT"
 
