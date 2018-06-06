@@ -6,7 +6,7 @@ description = "Wrapping the Docker API"
 documentation = "https://docs.rs/docktape"
 homepage = "https://github.com/wayk/docktape-rs"
 repository = "https://github.com/wayk/docktape-rs"
-keywords = ["Docker", "wrapper", "hyper", "http", "unix", "api", "tcp", "socket"]
+keywords = ["Docker", "unix", "api", "tcp", "socket"]
 license = "MIT"
 
 [dependencies]
