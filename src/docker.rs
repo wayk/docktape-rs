@@ -31,7 +31,11 @@ impl<T> Docker<T> where T: Socket{
     /// Create the URI
     #[cfg(not(target_os = "windows"))]
     fn create_uri(&self, path: &str) -> HyperUri{
-        HyperlocalUri::new(self.socket.address(), path).into()
+        if self.socket.is_unix(){
+            return HyperlocalUri::new(self.socket.address(), path).into();
+        }
+
+        format!("{}{}", self.socket.address(), path).parse().unwrap()
     }
 
     /// Create the URI
@@ -54,8 +58,8 @@ impl<T> Docker<T> where T: Socket{
     ///    }
     ///
     /// ```
-    pub fn create_image_from_image(&mut self, name: &str, repo: &str) -> Option<Value>{
-        let container_name = &format!("/images/create?fromImage={}&repo={}", name, repo);
+    pub fn create_image_from_image(&mut self, name: &str, repo: &str, platform: &str) -> Option<Value>{
+        let container_name = &format!("/images/create?fromImage={}&repo={}&platform={}", name, repo, platform);
         let uri = self.create_uri(container_name);
 
         match self.socket.request(uri, Post, None){

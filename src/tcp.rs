@@ -30,6 +30,11 @@ impl Socket for TcpSocket{
     }
 
     ///
+    fn is_unix(&self) -> bool{
+        false
+    }
+
+    ///
     fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
@@ -58,12 +63,13 @@ impl Socket for TcpSocket{
                 if item["message"].to_string() == "null"{
                     Some(item)
                 }
-                    else{
-                        error!("Message: {}", item["message"].to_string());
-                        None
-                    }
+                else{
+                    error!("Error message: {}", item["message"].to_string());
+                    None
+                }
             },
-            Err(_)=>{
+            Err(e)=>{
+                error!("Error message: {}", e);
                 None
             }
         }

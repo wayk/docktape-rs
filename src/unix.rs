@@ -1,7 +1,7 @@
-use hyper::{Client};
 #[cfg(not(target_os = "windows"))]
 use hyperlocal::{UnixConnector};
-use hyper::Uri;
+use hyper::{Uri, Method, Client};
+use hyper::header::ContentType;
 use tokio_core::reactor::Core;
 use futures::Future;
 use std::io::{self};
@@ -10,8 +10,6 @@ use hyper::Request;
 use serde_json;
 use serde_json::Value;
 use Socket;
-use hyper::Method;
-use hyper::header::ContentType;
 
 /// Unix socket
 #[derive(Clone)]
@@ -31,6 +29,11 @@ impl Socket for UnixSocket{
     ///
     fn address(&self) -> String{
         self.address.clone()
+    }
+
+    ///
+    fn is_unix(&self) -> bool{
+        true
     }
 
     ///
@@ -67,7 +70,8 @@ impl Socket for UnixSocket{
                     None
                 }
             },
-            Err(_)=>{
+            Err(e)=>{
+                error!("Error message: {}", e);
                 None
             }
         }

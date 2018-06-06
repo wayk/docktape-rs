@@ -26,7 +26,6 @@ mod network;
 mod volume;
 #[cfg(not(target_os = "windows"))]
 mod unix;
-#[cfg(target_os = "windows")]
 mod tcp;
 mod docker;
 
@@ -44,7 +43,6 @@ pub use hyper::Method;
 pub use unix::{UnixSocket};
 #[cfg(not(target_os = "windows"))]
 pub use hyperlocal::UnixConnector;
-#[cfg(target_os = "windows")]
 pub use tcp::{TcpSocket};
 
 /// Trait for both Unix and TCP sockets.
@@ -54,6 +52,9 @@ pub trait Socket{
 
     /// Returns the socket address
     fn address(&self) -> String;
+
+    /// Returns if the socket is Unix or TCP type
+    fn is_unix(&self) -> bool;
 
     /// Execute a request to the docker API through a socket connection
     fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>;
