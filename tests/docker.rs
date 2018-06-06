@@ -226,7 +226,7 @@ fn images_test() {
     let socket = TcpSocket::new("http://localhost:2375");
     let mut docker = Docker::new(socket.clone());
 
-    match docker.create_image_from_image("fedora:latest", ""){
+    match docker.create_image_from_image("fedora:latest", "", "linux"){
         Some(msg) =>{
             println!("Error message: {:?}", msg["message"]);
         }
