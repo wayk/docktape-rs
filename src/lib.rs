@@ -11,7 +11,9 @@
 
 extern crate futures;
 extern crate hyper;
+#[cfg(not(target_os = "windows"))]
 extern crate hyperlocal;
+
 extern crate tokio_core;
 extern crate serde_json;
 #[macro_use]
@@ -23,19 +25,29 @@ mod container;
 mod image;
 mod network;
 mod volume;
+#[cfg(not(target_os = "windows"))]
 mod unix;
+#[cfg(target_os = "windows")]
+mod tcp;
 mod docker;
 
 pub use futures::Stream;
 pub use futures::Future;
 pub use hyper::{Client, Result, Request};
-pub use hyperlocal::{Uri, UnixConnector};
 pub use tokio_core::reactor::Core;
+pub use hyper::Uri;
 pub use std::io::{self, Write};
 pub use serde_json::Value;
 pub use docker::Docker;
 pub use hyper::Method;
+
+#[cfg(not(target_os = "windows"))]
 pub use unix::{UnixSocket};
+#[cfg(not(target_os = "windows"))]
+pub use hyperlocal::UnixConnector;
+
+#[cfg(target_os = "windows")]
+pub use tcp::{TcpSocket};
 
 /// Trait for both Unix and TCP sockets.
 pub trait Socket{

@@ -1,13 +1,13 @@
 use Socket;
-use hyperlocal::Uri;
+use hyper::Uri as HyperUri;
 use hyper::Method::*;
-use image::Image;
-use container::Container;
 use serde_json::Value;
-use network::Network;
 use percent_encoding::{utf8_percent_encode};
 use percent_encoding::SIMPLE_ENCODE_SET;
 use volume::Volume;
+use image::Image;
+use container::Container;
+use network::Network;
 
 define_encode_set! {
     pub QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {' ', '"', '#', '<', '>', '/', ':'}
@@ -26,6 +26,18 @@ impl<T> Docker<T> where T: Socket{
         }
     }
 
+    /// Create the URI
+    #[cfg(target_os = "macos")]
+    fn create_uri(&self, path: &str) -> HyperUri{
+        HyperlocalUri::new(self.socket.address(), path).into()
+    }
+
+    /// Create the URI
+    #[cfg(not(target_os = "macos"))]
+    fn create_uri(&self, path: &str) -> HyperUri{
+        format!("{}{}", self.socket.address(), path).parse().unwrap()
+    }
+
     /// Creates a Docker image from a public image
     /// # Example
     ///
@@ -42,7 +54,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn create_image_from_image(&mut self, name: &str, repo: &str) -> Option<Value>{
         let container_name = &format!("/images/create?fromImage={}&repo={}", name, repo);
-        let uri = Uri::new(self.socket.address(), container_name);
+        let uri = self.create_uri(container_name);
 
         match self.socket.request(uri, Post, None){
             Some(body) =>{
@@ -69,7 +81,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn get_images(&mut self) -> Option<Vec<Image>>{
-        let uri = Uri::new(self.socket.address(), "/images/json");
+        let uri = self.create_uri("/images/json");
 
         match self.socket.request(uri, Get, None) {
             Some(imgs) => {
@@ -110,7 +122,7 @@ impl<T> Docker<T> where T: Socket{
     pub fn inspect_image(&mut self, image: &str) -> Option<Image>{
         let image = utf8_percent_encode(image.as_ref(), QUERY_ENCODE_SET).to_string();
         let image_name: String = format!("/images/{}/json", image);
-        let uri = Uri::new(self.socket.address(), image_name.as_str());
+        let uri = self.create_uri(image_name.as_str());
 
         match self.socket.request(uri, Get, None) {
             Some(image) => {
@@ -154,7 +166,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn delete_image(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/images/{}", name);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)
@@ -186,7 +198,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn create_container(&mut self, body: &str, name: &str) -> Option<Container>{
         let container_name = &format!("/containers/create?name={}", name);
-        let uri = Uri::new(self.socket.address(), container_name);
+        let uri = self.create_uri(container_name);
 
         match self.socket.request(uri, Post, Some(body.to_string())){
             Some(container) =>{
@@ -218,7 +230,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn get_containers(&mut self) -> Option<Vec<Container>>{
-        let uri = Uri::new(self.socket.address(), "/containers/json");
+        let uri = self.create_uri("/containers/json");
 
         match self.socket.request(uri, Get, None) {
             Some(conts) => {
@@ -261,7 +273,7 @@ impl<T> Docker<T> where T: Socket{
                     "/containers/{}/json",
                     utf8_percent_encode(container.as_ref(), QUERY_ENCODE_SET).to_string());
 
-        let uri = Uri::new(self.socket.address(), container_name.as_str());
+        let uri = self.create_uri(container_name.as_str());
 
         match self.socket.request(uri, Get, None) {
             Some(container) => {
@@ -299,7 +311,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn start_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/start", container);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
@@ -326,7 +338,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn stop_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/stop", container);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
@@ -353,7 +365,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn restart_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/restart", container);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri( path);
         match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
@@ -380,7 +392,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn delete_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}", container);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Delete, None){
             Some(message) =>{
                 Some(message)
@@ -411,7 +423,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn create_network(&mut self, body: &str) -> Option<Network>{
-        let uri = Uri::new(self.socket.address(), "/networks/create");
+        let uri = self.create_uri("/networks/create");
 
         match self.socket.request(uri, Post, Some(body.to_string())){
             Some(network) =>{
@@ -442,7 +454,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn get_networks(&mut self) -> Option<Vec<Network>>{
-        let uri = Uri::new(self.socket.address(), "/networks");
+        let uri = self.create_uri("/networks");
 
         match self.socket.request(uri, Get, None) {
             Some(ntws) => {
@@ -479,7 +491,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn inspect_network(&mut self, name: &str) -> Option<Network>{
         let path = &format!("/networks/{}", name);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Get, None) {
             Some(network) => {
                 Some(Network{
@@ -509,7 +521,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn delete_network(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/networks/{}", name);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)
@@ -539,7 +551,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn create_volume(&mut self, body: &str) -> Option<Volume>{
-        let uri = Uri::new(self.socket.address(), "/volumes/create");
+        let uri = self.create_uri("/volumes/create");
 
         match self.socket.request(uri, Post, Some(body.to_string())){
             Some(volume) =>{
@@ -569,7 +581,7 @@ impl<T> Docker<T> where T: Socket{
     ///
     /// ```
     pub fn get_volumes(&mut self) -> Option<Vec<Volume>>{
-        let uri = Uri::new(self.socket.address(), "/volumes");
+        let uri = self.create_uri("/volumes");
 
         match self.socket.request(uri, Get, None) {
             Some(vols) => {
@@ -606,7 +618,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn inspect_volume(&mut self, name: &str) -> Option<Volume>{
         let path = &format!("/volumes/{}", name);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Get, None) {
             Some(volume) => {
                 Some(Volume{
@@ -636,7 +648,7 @@ impl<T> Docker<T> where T: Socket{
     /// ```
     pub fn delete_volume(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/volumes/{}", name);
-        let uri = Uri::new(self.socket.address(), path);
+        let uri = self.create_uri(path);
         match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)

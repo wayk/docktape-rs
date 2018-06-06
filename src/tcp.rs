@@ -1,29 +1,25 @@
-use hyper::{Client};
-#[cfg(not(target_os = "windows"))]
-use hyperlocal::{UnixConnector};
-use hyper::Uri;
 use tokio_core::reactor::Core;
+use hyper::{Client, Uri, Request, Method};
+use hyper::client::HttpConnector;
+use hyper::header::ContentType;
 use futures::Future;
-use std::io::{self};
 use futures::Stream;
-use hyper::Request;
 use serde_json;
 use serde_json::Value;
+use std::io::{self};
 use Socket;
-use hyper::Method;
-use hyper::header::ContentType;
 
 /// Unix socket
 #[derive(Clone)]
-pub struct UnixSocket{
+pub struct TcpSocket{
     /// Socket address
     pub address: String
 }
 
-impl Socket for UnixSocket{
+impl Socket for TcpSocket{
     ///
     fn new(address: &str) -> Self{
-        UnixSocket{
+        TcpSocket{
             address: address.to_string()
         }
     }
@@ -37,7 +33,7 @@ impl Socket for UnixSocket{
     fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
-        let client = Client::configure().connector(UnixConnector::new(handle)).build(&core.handle());
+        let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
         let mut request = Request::new(method, uri);
         request.headers_mut().set(ContentType::json());
         if let Some(b) = body{
@@ -62,10 +58,10 @@ impl Socket for UnixSocket{
                 if item["message"].to_string() == "null"{
                     Some(item)
                 }
-                else{
-                    error!("Message: {}", item["message"].to_string());
-                    None
-                }
+                    else{
+                        error!("Message: {}", item["message"].to_string());
+                        None
+                    }
             },
             Err(_)=>{
                 None
