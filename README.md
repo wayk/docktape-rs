@@ -4,9 +4,10 @@
 ## Unix Socket initialization
 ```rust
 // Unix socket
-let socket = UnixSocket::new("<Path to your socket>");
+let socket = UnixSocket::new("/var/run/docker.sock");
 
-//TCP socket (Not supported yet)
+//TCP socket
+let socket = TcpSocket::new("http://localhost:2375");
 ```
 
 ## Initialize Docker

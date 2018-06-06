@@ -1,4 +1,6 @@
 use Socket;
+#[cfg(not(target_os = "windows"))]
+use hyperlocal::Uri as HyperlocalUri;
 use hyper::Uri as HyperUri;
 use hyper::Method::*;
 use serde_json::Value;
@@ -27,13 +29,13 @@ impl<T> Docker<T> where T: Socket{
     }
 
     /// Create the URI
-    #[cfg(target_os = "macos")]
+    #[cfg(not(target_os = "windows"))]
     fn create_uri(&self, path: &str) -> HyperUri{
         HyperlocalUri::new(self.socket.address(), path).into()
     }
 
     /// Create the URI
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
     fn create_uri(&self, path: &str) -> HyperUri{
         format!("{}{}", self.socket.address(), path).parse().unwrap()
     }

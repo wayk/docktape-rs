@@ -5,7 +5,7 @@
 //!
 //! Docktape is a wrapper for the Docker API (https://docs.docker.com/develop/sdk/).
 //!
-//! It currently works with Unix sockets but soon it will be available for TCP sockets.
+//! It currently works with Unix and TCP sockets
 //!
 //! This crate is currently using Hyper v0.11.27 (https://docs.rs/crate/hyper/0.11.27) and will be updated very soon.
 
@@ -13,7 +13,6 @@ extern crate futures;
 extern crate hyper;
 #[cfg(not(target_os = "windows"))]
 extern crate hyperlocal;
-
 extern crate tokio_core;
 extern crate serde_json;
 #[macro_use]
@@ -45,7 +44,6 @@ pub use hyper::Method;
 pub use unix::{UnixSocket};
 #[cfg(not(target_os = "windows"))]
 pub use hyperlocal::UnixConnector;
-
 #[cfg(target_os = "windows")]
 pub use tcp::{TcpSocket};
 
