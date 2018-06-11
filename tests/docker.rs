@@ -9,6 +9,22 @@ use docktape::Docker;
 
 #[cfg(not(target_os = "windows"))]
 #[test]
+fn info_test() {
+    let socket = UnixSocket::new("/var/run/docker.sock");
+    let mut docker = Docker::new(socket.clone());
+
+    match docker.get_info(){
+        Some(info) =>{
+            println!("Dock info: {}", info);
+        },
+        None =>{
+            println!("No info! (Docker is offline?)");
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+#[test]
 fn images_test() {
     let socket = UnixSocket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());

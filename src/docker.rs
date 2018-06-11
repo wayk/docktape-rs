@@ -44,6 +44,33 @@ impl<T> Docker<T> where T: Socket{
         format!("{}{}", self.socket.address(), path).parse().unwrap()
     }
 
+    /// Returns Docker informations
+    /// # Example
+    ///
+    /// ```rust,no_run
+    ///  match docker.get_info(){
+    ///       Some(info) =>{
+    ///           println!("Dock info: {}", info);
+    ///       },
+    ///       None =>{
+    ///           println!("No info! (Docker is offline?)");
+    ///       }
+    ///   }
+    ///
+    /// ```
+    pub fn get_info(&mut self) -> Option<Value>{
+        let uri = self.create_uri("/info");
+
+        match self.socket.request(uri, Get, None) {
+            Some(info) => {
+               Some(info)
+            },
+            None =>{
+                None
+            }
+        }
+    }
+
     /// Creates a Docker image from a public image
     /// # Example
     ///
