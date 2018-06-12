@@ -1,4 +1,3 @@
-use Socket;
 #[cfg(not(target_os = "windows"))]
 use hyperlocal::Uri as HyperlocalUri;
 use hyper::Uri as HyperUri;
@@ -10,19 +9,20 @@ use volume::Volume;
 use image::Image;
 use container::Container;
 use network::Network;
+use socket::Socket;
 
 define_encode_set! {
     pub QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {' ', '"', '#', '<', '>', '/', ':'}
 }
 
 /// Struct representing a Docker object with its socket
-pub struct Docker<T: Socket>{
-    socket: T
+pub struct Docker{
+    socket: Socket
 }
 
-impl<T> Docker<T> where T: Socket{
+impl Docker{
     ///
-    pub fn new(socket: T) -> Self{
+    pub fn new(socket: Socket) -> Self{
         Docker{
             socket
         }
