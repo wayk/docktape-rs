@@ -53,7 +53,7 @@ impl Socket{
     pub fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
-        let mut client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
+        let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
 
         let mut request = Request::new(method, uri);
         request.headers_mut().set(ContentType::json());
