@@ -3,7 +3,7 @@ pub struct Container{
     pub id: String,
     pub name: String,
     pub image: String,
-    pub running: bool
+    pub running: String
 }
 
 impl Container{
@@ -23,7 +23,7 @@ impl Container{
     }
 
     /// Returns if the container is running
-    pub fn running(&self) -> bool{
-        self.running.clone()
+    pub fn running(&self) -> String{
+        self.running.clone().replace("\"", "")
     }
 }

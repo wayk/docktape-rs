@@ -239,7 +239,7 @@ impl Docker{
                     id: container["Id"].to_string(),
                     name: container["Names"][0].to_string(),
                     image: container["Image"].to_string(),
-                    running: false
+                    running: "false".to_string()
                 })
             },
             None =>{
@@ -274,7 +274,7 @@ impl Docker{
                         id: c["Id"].to_string(),
                         name: c["Names"][0].to_string(),
                         image: c["Image"].to_string(),
-                        running: true
+                        running: "false".to_string()
                     });
                 }
 
@@ -318,7 +318,7 @@ impl Docker{
                             id: container["Id"].to_string(),
                             name: container["Name"].to_string(),
                             image: container["Config"]["Image"].to_string(),
-                            running: true,
+                            running: container["State"]["Running"].to_string(),
                     })
                 }
             },

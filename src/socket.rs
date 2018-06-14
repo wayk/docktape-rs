@@ -76,13 +76,7 @@ impl Socket{
 
         match core.run(work){
             Ok(item) =>{
-                if item["message"].to_string() == "null"{
-                    Some(item)
-                }
-                    else{
-                        error!("Error message: {}", item["message"].to_string());
-                        None
-                    }
+                Some(item)
             },
             Err(e)=>{
                 error!("Error message: {}", e);
@@ -120,13 +114,7 @@ impl Socket{
 
             match core.run(work){
                 Ok(item) =>{
-                    if item["message"].to_string() == "null"{
-                        Some(item)
-                    }
-                        else{
-                            error!("Error message: {}", item["message"].to_string());
-                            None
-                        }
+                    Some(item)
                 },
                 Err(e)=>{
                     error!("Error message: {}", e);
@@ -157,13 +145,7 @@ impl Socket{
 
             match core.run(work){
                 Ok(item) =>{
-                    if item["message"].to_string() == "null"{
-                        Some(item)
-                    }
-                        else{
-                            error!("Error message: {}", item["message"].to_string());
-                            None
-                        }
+                    Some(item)
                 },
                 Err(e)=>{
                     error!("Error message: {}", e);
