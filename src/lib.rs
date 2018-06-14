@@ -1,5 +1,5 @@
-#![deny(missing_docs)]
-#![deny(warnings)]
+// #![deny(missing_docs)]
+// #![deny(warnings)]
 
 //! # Docktape
 //!
@@ -27,16 +27,9 @@ mod socket;
 mod docker;
 mod utils;
 
-pub use futures::Stream;
-pub use futures::Future;
-pub use hyper::{Client, Result, Request};
-pub use tokio_core::reactor::Core;
-pub use hyper::Uri;
-pub use std::io::{self, Write};
-pub use serde_json::Value;
+pub use container::Container;
 pub use docker::Docker;
-pub use hyper::Method;
-
-#[cfg(not(target_os = "windows"))]
-pub use hyperlocal::UnixConnector;
-pub use socket::{Socket};
+pub use image::Image;
+pub use network::Network;
+pub use volume::Volume;
+pub use socket::Socket;
