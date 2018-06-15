@@ -10,6 +10,7 @@ use serde_json;
 use serde_json::Value;
 use std::io::{self};
 use utils;
+use hyper::Body;
 
 ///Socket
 #[derive(Clone)]
@@ -50,16 +51,14 @@ impl Socket{
 
     /// Execute the request on the client
     #[cfg(target_os = "windows")]
-    pub fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>{
+    pub fn request<T>(&mut self, uri: Uri, method: Method, body: Option<T>) -> Option<Value> where T: Into<Body>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
         let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
 
         let mut request = Request::new(method, uri);
         request.headers_mut().set(ContentType::json());
-        if let Some(b) = body{
-            request.set_body(b);
-        }
+        request.set_body(b);
 
         let work = client.request(request).and_then(|res| {
             res.body().concat2().and_then(move |body| {
@@ -87,7 +86,7 @@ impl Socket{
 
     /// Execute the request on the client
     #[cfg(not(target_os = "windows"))]
-    pub fn request(&mut self, uri: Uri, method: Method, body: Option<String>) -> Option<Value>{
+    pub fn request<T>(&mut self, uri: Uri, method: Method, body: Option<T>) -> Option<Value> where T: Into<Body>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
 
@@ -95,9 +94,7 @@ impl Socket{
             let client = Client::configure().connector(UnixConnector::new(handle)).build(&core.handle());
             let mut request = Request::new(method, uri);
             request.headers_mut().set(ContentType::json());
-            if let Some(b) = body {
-                request.set_body(b);
-            }
+            request.set_body(body.unwrap());
 
             let work = client.request(request).and_then(|res| {
                 res.body().concat2().and_then(move |body| {
@@ -126,9 +123,7 @@ impl Socket{
             let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
             let mut request = Request::new(method, uri);
             request.headers_mut().set(ContentType::json());
-            if let Some(b) = body {
-                request.set_body(b);
-            }
+            request.set_body(body.unwrap());
 
             let work = client.request(request).and_then(|res| {
                 res.body().concat2().and_then(move |body| {

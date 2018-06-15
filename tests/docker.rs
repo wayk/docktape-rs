@@ -7,6 +7,13 @@ use docktape::*;
 use docktape::Docker;
 
 #[test]
+fn put_container_test() {
+    let socket = Socket::new("/var/run/docker.sock");
+    let mut docker = Docker::new(socket.clone());
+    docker.put_container("router", "/tmp", "archive.tar.gz");
+}
+
+#[test]
 fn info_test() {
     let socket = Socket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());
