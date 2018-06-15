@@ -58,7 +58,7 @@ impl Socket{
 
         let mut request = Request::new(method, uri);
         request.headers_mut().set(ContentType::json());
-        request.set_body(b);
+        request.set_body(body.unwrap());
 
         let work = client.request(request).and_then(|res| {
             res.body().concat2().and_then(move |body| {
