@@ -12,6 +12,7 @@ use network::Network;
 use socket::Socket;
 use std::fs::File;
 use std::io::Read;
+use hyper::Body;
 
 define_encode_set! {
     pub QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {' ', '"', '#', '<', '>', '/', ':'}
@@ -63,7 +64,7 @@ impl Docker{
     pub fn get_info(&mut self) -> Option<Value>{
         let uri = self.create_uri("/info");
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(info) => {
                Some(info)
             },
@@ -91,7 +92,7 @@ impl Docker{
         let container_name = &format!("/images/create?fromImage={}&repo={}&platform={}", name, repo, platform);
         let uri = self.create_uri(container_name);
 
-        match self.socket.request(uri, Post, Some(String::new())){
+        match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
             },
@@ -118,7 +119,7 @@ impl Docker{
     pub fn get_images(&mut self) -> Option<Vec<Image>>{
         let uri = self.create_uri("/images/json");
 
-        match self.socket.request(uri, Get, Some(String::new())) {
+        match self.socket.request(uri, Get, None) {
             Some(imgs) => {
                 let mut images = Vec::new();
                 let arr_images: &Vec<Value> = imgs.as_array().unwrap();
@@ -159,7 +160,7 @@ impl Docker{
         let image_name: String = format!("/images/{}/json", image);
         let uri = self.create_uri(image_name.as_str());
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(image) => {
                 match image["RepoTags"].as_array(){
                     Some(tags) =>{
@@ -202,7 +203,7 @@ impl Docker{
     pub fn delete_image(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/images/{}", name);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Delete, Some("null".to_string())) {
+        match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)
             },
@@ -231,11 +232,13 @@ impl Docker{
     ///   }
     ///
     /// ```
-    pub fn create_container(&mut self, body: &str, name: &str) -> Option<Container>{
+    pub fn create_container(&mut self, body_str: String, name: &str) -> Option<Container>{
         let container_name = &format!("/containers/create?name={}", name);
         let uri = self.create_uri(container_name);
 
-        match self.socket.request(uri, Post, Some(body.to_string())){
+        let body = Body::from(body_str);
+
+        match self.socket.request(uri, Post, Some(body)){
             Some(container) =>{
                 Some(Container{
                     id: container["Id"].to_string(),
@@ -267,7 +270,7 @@ impl Docker{
     pub fn get_containers(&mut self) -> Option<Vec<Container>>{
         let uri = self.create_uri("/containers/json");
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(conts) => {
                 let mut containers = Vec::new();
                 let arr_containers: &Vec<Value> = conts.as_array().unwrap();
@@ -310,7 +313,7 @@ impl Docker{
 
         let uri = self.create_uri(container_name.as_str());
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(container) => {
                 if container["Id"].to_string() == "null" {
                     None
@@ -347,7 +350,7 @@ impl Docker{
     pub fn start_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/start", container);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Post, Some("null".to_string())){
+        match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
             },
@@ -374,7 +377,7 @@ impl Docker{
     pub fn stop_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/stop", container);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Post, Some("null".to_string())){
+        match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
             },
@@ -401,7 +404,7 @@ impl Docker{
     pub fn restart_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}/restart", container);
         let uri = self.create_uri( path);
-        match self.socket.request(uri, Post, Some("null".to_string())){
+        match self.socket.request(uri, Post, None){
             Some(body) =>{
                 Some(body)
             },
@@ -428,7 +431,7 @@ impl Docker{
     pub fn delete_container(&mut self, container: &str) -> Option<Value>{
         let path = &format!("/containers/{}", container);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Delete, Some("null".to_string())){
+        match self.socket.request(uri, Delete, None){
             Some(message) =>{
                 Some(message)
             },
@@ -457,13 +460,14 @@ impl Docker{
         let path = utf8_percent_encode(path.as_ref(), QUERY_ENCODE_SET).to_string();
 
         let path = &format!("/containers/{}/archive?path={}", container, path);
-        println!("path: {}", tar_path);
         let uri = self.create_uri(path);
         let mut file = File::open(tar_path).unwrap();
-
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).unwrap();
-        match self.socket.request(uri, Put, Some(buffer)){
+
+        let body = Body::from(buffer);
+
+        match self.socket.request(uri, Put, Some(body)){
             Some(message) =>{
                 Some(message)
             },
@@ -492,10 +496,12 @@ impl Docker{
     ///   }
     ///
     /// ```
-    pub fn create_network(&mut self, body: &str) -> Option<Network>{
+    pub fn create_network(&mut self, body_str: String) -> Option<Network>{
         let uri = self.create_uri("/networks/create");
 
-        match self.socket.request(uri, Post, Some(body.to_string())){
+        let body = Body::from(body_str);
+
+        match self.socket.request(uri, Post, Some(body)){
             Some(network) =>{
                 println!("Create network: {}", network);
                 Some(Network{
@@ -526,7 +532,7 @@ impl Docker{
     pub fn get_networks(&mut self) -> Option<Vec<Network>>{
         let uri = self.create_uri("/networks");
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(ntws) => {
                 let mut networks = Vec::new();
                 let arr_networks: &Vec<Value> = ntws.as_array().unwrap();
@@ -562,7 +568,7 @@ impl Docker{
     pub fn inspect_network(&mut self, name: &str) -> Option<Network>{
         let path = &format!("/networks/{}", name);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(network) => {
                 Some(Network{
                     id: network["Id"].to_string(),
@@ -592,7 +598,7 @@ impl Docker{
     pub fn delete_network(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/networks/{}", name);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Delete, Some("null".to_string())) {
+        match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)
             },
@@ -620,10 +626,12 @@ impl Docker{
     ///   }
     ///
     /// ```
-    pub fn create_volume(&mut self, body: &str) -> Option<Volume>{
+    pub fn create_volume(&mut self, body_str: String) -> Option<Volume>{
         let uri = self.create_uri("/volumes/create");
 
-        match self.socket.request(uri, Post, Some(body.to_string())){
+        let body = Body::from(body_str);
+
+        match self.socket.request(uri, Post, Some(body)){
             Some(volume) =>{
                 Some(Volume{
                     name: volume["Name"].to_string(),
@@ -653,7 +661,7 @@ impl Docker{
     pub fn get_volumes(&mut self) -> Option<Vec<Volume>>{
         let uri = self.create_uri("/volumes");
 
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(vols) => {
                 let mut volumes = Vec::new();
                 let arr_volumes: &Vec<Value> = vols["Volumes"].as_array().unwrap();
@@ -689,7 +697,7 @@ impl Docker{
     pub fn inspect_volume(&mut self, name: &str) -> Option<Volume>{
         let path = &format!("/volumes/{}", name);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Get, Some("null".to_string())) {
+        match self.socket.request(uri, Get, None) {
             Some(volume) => {
                 Some(Volume{
                     name: volume["Name"].to_string(),
@@ -719,7 +727,7 @@ impl Docker{
     pub fn delete_volume(&mut self, name: &str) -> Option<Value>{
         let path = &format!("/volumes/{}", name);
         let uri = self.create_uri(path);
-        match self.socket.request(uri, Delete, Some("null".to_string())) {
+        match self.socket.request(uri, Delete, None) {
             Some(message) => {
                 Some(message)
             },
