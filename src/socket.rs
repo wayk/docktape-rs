@@ -80,7 +80,6 @@ impl Socket{
                 Some(item)
             },
             Err(e)=>{
-                error!("Error message: {}", e);
                 None
             }
         }
@@ -118,7 +117,6 @@ impl Socket{
                     Some(item)
                 },
                 Err(e)=>{
-                    error!("Error message: {}", e);
                     None
                 }
             }
@@ -149,7 +147,6 @@ impl Socket{
                     Some(item)
                 },
                 Err(e)=>{
-                    error!("Error message: {}", e);
                     None
                 }
             }
