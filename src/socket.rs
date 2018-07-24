@@ -79,7 +79,7 @@ impl Socket{
             Ok(item) =>{
                 Some(item)
             },
-            Err(e)=>{
+            Err(_)=>{
                 None
             }
         }
@@ -116,7 +116,7 @@ impl Socket{
                 Ok(item) =>{
                     Some(item)
                 },
-                Err(e)=>{
+                Err(_)=>{
                     None
                 }
             }
@@ -146,7 +146,7 @@ impl Socket{
                 Ok(item) =>{
                     Some(item)
                 },
-                Err(e)=>{
+                Err(_)=>{
                     None
                 }
             }

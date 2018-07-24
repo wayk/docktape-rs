@@ -15,7 +15,6 @@ extern crate tokio_core;
 extern crate serde_json;
 #[macro_use]
 extern crate percent_encoding;
-#[macro_use]
 extern crate log;
 extern crate url;
 
