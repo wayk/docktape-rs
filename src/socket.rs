@@ -51,7 +51,7 @@ impl Socket{
 
     /// Execute the request on the client
     #[cfg(target_os = "windows")]
-    pub fn request<T>(&mut self, uri: Uri, method: Method, body: Option<T>) -> Option<Value>{
+    pub fn request(&mut self, uri: Uri, method: Method, body: Option<Body>) -> Option<Value>{
         let mut core = Core::new().unwrap();
         let handle = core.handle();
         let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());

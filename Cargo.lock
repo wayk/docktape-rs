@@ -71,7 +71,7 @@ dependencies = [
 
 [[package]]
 name = "docktape"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.27 (registry+https://github.com/rust-lang/crates.io-index)",
