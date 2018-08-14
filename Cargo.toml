@@ -1,6 +1,6 @@
 [package]
 name = "docktape"
-version = "0.3.6"
+version = "0.3.7"
 authors = ["spicheaubin <spicheaubin@devolutions.net>"]
 description = "Wrapping the Docker API"
 documentation = "https://docs.rs/docktape"

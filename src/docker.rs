@@ -570,13 +570,17 @@ impl Docker{
         let uri = self.create_uri(path);
         match self.socket.request(uri, Get, None) {
             Some(network) => {
-                Some(Network{
+                if !network["message"].is_null(){
+                    return None;
+                }
+
+                return Some(Network{
                     id: network["Id"].to_string(),
                     name: network["Name"].to_string(),
-                })
+                });
             },
             None =>{
-                None
+               return None;
             }
         }
     }
