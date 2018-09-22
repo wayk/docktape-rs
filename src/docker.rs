@@ -128,9 +128,19 @@ impl Docker{
                     for tag in c["RepoTags"].as_array().unwrap(){
                         tags.push(tag.to_string());
                     }
-                    images.push(Image{
-                        id: c["Id"].to_string(),
-                        repo_tags: Some(tags) });
+
+                    let mut digests = Vec::new();
+                    for digest in c["RepoDigests"].as_array().unwrap() {
+                        digests.push(digest.to_string());
+                    }
+
+                    images.push(
+                        Image{
+                            id: c["Id"].to_string(),
+                            repo_tags: Some(tags),
+                            repo_digests: Some(digests),
+                        }
+                    );
                 }
 
                 Some(images)
@@ -162,23 +172,37 @@ impl Docker{
 
         match self.socket.request(uri, Get, None) {
             Some(image) => {
-                match image["RepoTags"].as_array(){
-                    Some(tags) =>{
+                let ts = match image["RepoTags"].as_array() {
+                    Some(tags) => {
                         let mut ts = Vec::new();
                         for tag in tags{
                             ts.push(tag.to_string());
                         }
-                        Some(
-                            Image{
-                                id: image["Id"].to_string(),
-                                repo_tags: Some(ts)
-                            }
-                        )
+
+                        Some(ts)
                     },
-                    None =>{
-                        None
+                    None =>{ None }
+                };
+
+                let ds = match image["RepoDigests"].as_array() {
+                    Some(digests) => {
+                        let mut ds = Vec::new();
+                        for digest in digests {
+                            ds.push(digest.to_string());
+                        }
+
+                        Some(ds)
+                    },
+                    None =>{ None }
+                };
+
+                Some(
+                    Image{
+                        id: image["Id"].to_string(),
+                        repo_tags: ts,
+                        repo_digests: ds,
                     }
-                }
+                )
             },
             None =>{
                 None
