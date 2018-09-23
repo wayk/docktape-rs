@@ -18,11 +18,11 @@ fn info_test() {
     let socket = Socket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());
 
-    match docker.get_info(){
-        Some(info) =>{
+    match docker.get_info() {
+        Some(info) => {
             println!("Dock info: {}", info);
-        },
-        None =>{
+        }
+        None => {
             println!("No info! (Docker is offline?)");
         }
     }
@@ -33,30 +33,29 @@ fn images_test() {
     let socket = Socket::new("/var/run/docker.sock");
     let mut docker = Docker::new(socket.clone());
 
-    match docker.create_image_from_image("fedora:latest", "", "linux"){
-        Some(msg) =>{
+    match docker.create_image_from_image("fedora:latest", "", "linux") {
+        Some(msg) => {
             if msg["message"].to_string() != "null" {
                 println!("Error message: {:?}", msg["message"]);
-            }
-            else{
+            } else {
                 println!("Image created.");
             }
         }
-        None =>{
+        None => {
             println!("Failed to create image.");
         }
     }
 
-    match docker.get_images(){
-        Some(images) =>{
+    match docker.get_images() {
+        Some(images) => {
             println!("There are {} image(s).", images.len());
-        },
-        None =>{
+        }
+        None => {
             println!("There are no images.");
         }
     }
 
-    match docker.inspect_image("fedora:latest"){
+    match docker.inspect_image("fedora:latest") {
         Some(img) => {
             println!("Image id: {}.", img.id());
         }
@@ -65,16 +64,15 @@ fn images_test() {
         }
     }
 
-    match docker.delete_image("fedora:latest"){
-        Some(msg) =>{
+    match docker.delete_image("fedora:latest") {
+        Some(msg) => {
             if msg["message"].to_string() != "null" {
                 println!("Error message: {:?}", msg["message"]);
-            }
-            else{
+            } else {
                 println!("Image deleted.");
             }
         }
-        None =>{
+        None => {
             println!("Error while deleting image.");
         }
     }

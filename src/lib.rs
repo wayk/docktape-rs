@@ -18,6 +18,8 @@ extern crate percent_encoding;
 extern crate log;
 extern crate url;
 
+extern crate chrono;
+
 mod container;
 mod image;
 mod network;
@@ -38,4 +40,6 @@ pub use hyper::Method;
 
 #[cfg(not(target_os = "windows"))]
 pub use hyperlocal::UnixConnector;
-pub use socket::{Socket};
+pub use socket::Socket;
+
+pub use chrono::DateTime;
