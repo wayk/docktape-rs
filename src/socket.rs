@@ -1,5 +1,5 @@
 #[cfg(not(target_os = "windows"))]
-use hyperlocal::{UnixConnector};
+use hyperlocal::UnixConnector;
 use tokio_core::reactor::Core;
 use hyper::{Client, Uri, Request, Method};
 use hyper::client::HttpConnector;
@@ -14,35 +14,34 @@ use hyper::Body;
 
 ///Socket
 #[derive(Clone)]
-pub struct Socket{
+pub struct Socket {
     /// Socket address
     pub address: String
 }
 
-impl Socket{
+impl Socket {
     /// Create new socket
-    pub fn new(address: &str) -> Self{
-        Socket{
+    pub fn new(address: &str) -> Self {
+        Socket {
             address: address.to_string()
         }
     }
 
     /// Returns the Socket address
-    pub fn address(&self) -> String{
+    pub fn address(&self) -> String {
         self.address.clone()
     }
 
     /// Returns if the Socket is a Unix one
-    pub fn is_unix(&self) -> bool{
-        match utils::is_http_scheme(&self.address()){
-            Some(scheme) =>{
-                if scheme == "http"{
+    pub fn is_unix(&self) -> bool {
+        match utils::is_http_scheme(&self.address()) {
+            Some(scheme) => {
+                if scheme == "http" {
                     false
-                }
-                else {
+                } else {
                     true
                 }
-            },
+            }
             None => {
                 true
             }
@@ -51,14 +50,14 @@ impl Socket{
 
     /// Execute the request on the client
     #[cfg(target_os = "windows")]
-    pub fn request(&mut self, uri: Uri, method: Method, body: Option<Body>) -> Option<Value>{
+    pub fn request(&mut self, uri: Uri, method: Method, body: Option<Body>) -> Option<Value> {
         let mut core = Core::new().unwrap();
         let handle = core.handle();
         let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
 
         let mut request = Request::new(method, uri);
         request.headers_mut().set(ContentType::json());
-        if let Some(b) = body{
+        if let Some(b) = body {
             request.set_body(b);
         }
 
@@ -67,7 +66,7 @@ impl Socket{
                 let v: Value = serde_json::from_slice(&body).map_err(|e| {
                     io::Error::new(
                         io::ErrorKind::Other,
-                        e
+                        e,
                     )
                 })?;
 
@@ -75,11 +74,11 @@ impl Socket{
             })
         });
 
-        match core.run(work){
-            Ok(item) =>{
+        match core.run(work) {
+            Ok(item) => {
                 Some(item)
-            },
-            Err(_)=>{
+            }
+            Err(_) => {
                 None
             }
         }
@@ -87,7 +86,7 @@ impl Socket{
 
     /// Execute the request on the client
     #[cfg(not(target_os = "windows"))]
-    pub fn request(&mut self, uri: Uri, method: Method, body: Option<Body>) -> Option<Value>{
+    pub fn request(&mut self, uri: Uri, method: Method, body: Option<Body>) -> Option<Value> {
         let mut core = Core::new().unwrap();
         let handle = core.handle();
 
@@ -95,7 +94,7 @@ impl Socket{
             let client = Client::configure().connector(UnixConnector::new(handle)).build(&core.handle());
             let mut request = Request::new(method, uri);
             request.headers_mut().set(ContentType::json());
-            if let Some(b) = body{
+            if let Some(b) = body {
                 request.set_body(b);
             }
 
@@ -104,7 +103,7 @@ impl Socket{
                     let v: Value = serde_json::from_slice(&body).map_err(|e| {
                         io::Error::new(
                             io::ErrorKind::Other,
-                            e
+                            e,
                         )
                     })?;
 
@@ -112,20 +111,19 @@ impl Socket{
                 })
             });
 
-            match core.run(work){
-                Ok(item) =>{
+            match core.run(work) {
+                Ok(item) => {
                     Some(item)
-                },
-                Err(_)=>{
+                }
+                Err(_) => {
                     None
                 }
             }
-        }
-        else{
+        } else {
             let client = Client::configure().connector(HttpConnector::new(4, &handle)).build(&core.handle());
             let mut request = Request::new(method, uri);
             request.headers_mut().set(ContentType::json());
-            if let Some(b) = body{
+            if let Some(b) = body {
                 request.set_body(b);
             }
 
@@ -134,7 +132,7 @@ impl Socket{
                     let v: Value = serde_json::from_slice(&body).map_err(|e| {
                         io::Error::new(
                             io::ErrorKind::Other,
-                            e
+                            e,
                         )
                     })?;
 
@@ -142,11 +140,11 @@ impl Socket{
                 })
             });
 
-            match core.run(work){
-                Ok(item) =>{
+            match core.run(work) {
+                Ok(item) => {
                     Some(item)
-                },
-                Err(_)=>{
+                }
+                Err(_) => {
                     None
                 }
             }

@@ -38,4 +38,4 @@ pub use hyper::Method;
 
 #[cfg(not(target_os = "windows"))]
 pub use hyperlocal::UnixConnector;
-pub use socket::{Socket};
+pub use socket::Socket;
