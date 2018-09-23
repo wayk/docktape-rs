@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+
 /// Struct representing a Docker image with some of its fields
 pub struct Image {
     pub id: String,
@@ -5,7 +7,7 @@ pub struct Image {
     pub repo_digests: Option<Vec<String>>,
     pub parent: String,
     pub comment: String,
-    pub created: String,
+    pub created: DateTime<Utc>,
     pub container: String,
     pub docker_version: String,
     pub author: String,

@@ -13,6 +13,7 @@ use socket::Socket;
 use std::fs::File;
 use std::io::Read;
 use hyper::Body;
+use chrono::prelude::*;
 
 define_encode_set! {
     pub QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {' ', '"', '#', '<', '>', '/', ':'}
@@ -141,7 +142,7 @@ impl Docker {
                             repo_digests: Some(digests),
                             parent: c["Parent"].to_string(),
                             comment: c["Comment"].to_string(),
-                            created: c["Created"].to_string(),
+                            created: c["Created"].to_string().as_str().parse::<DateTime<Utc>>().unwrap(),
                             container: c["Container"].to_string(),
                             docker_version: c["DockerVersion"].to_string(),
                             author: c["Author"].to_string(),
@@ -205,7 +206,6 @@ impl Docker {
                     }
                     None => { None }
                 };
-
                 Some(
                     Image {
                         id: image["Id"].to_string(),
@@ -213,7 +213,7 @@ impl Docker {
                         repo_digests: ds,
                         parent: image["Parent"].to_string(),
                         comment: image["Comment"].to_string(),
-                        created: image["Created"].to_string(),
+                        created: image["Created"].to_string().as_str().parse::<DateTime<Utc>>().unwrap(),
                         container: image["Container"].to_string(),
                         docker_version: image["DockerVersion"].to_string(),
                         author: image["Author"].to_string(),
